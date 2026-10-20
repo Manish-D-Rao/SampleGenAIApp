@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LangServe Translator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+      input,
+      select,
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      #result {
+        margin-top: 20px;
+        padding: 10px;
+        background: #f4f4f4;
+        border-radius: 4px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>LangChain Translator</h2>
+    <label for="text">Text to Translate:</label>
+    <input type="text" id="text" placeholder="Enter text here..." />
+    <br /><br />
+    <label for="language">Target Language:</label>
+    <input
+      type="text"
+      id="language"
+      placeholder="e.g., French, Spanish, Hindi"
+    />
+
+    <button onclick="translateText()">Translate</button>
+
+    <h3>Result:</h3>
+    <div id="result">Translation will appear here...</div>
+
+    <script>
+      async function translateText() {
+        const text = document.getElementById("text").value;
+        const language = document.getElementById("language").value;
+        const resultDiv = document.getElementById("result");
+
+        resultDiv.innerText = "Translating...";
+
+        try {
+          // LangServe creates an /invoke endpoint under your path
+          const response = await fetch("http://localhost:8000/chain/invoke", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              input: {
+                text: text,
+                language: language,
+              },
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Server error: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          // LangServe typically wraps output in an "output" field
+          resultDiv.innerText = data.output;
+        } catch (error) {
+          resultDiv.innerText = "Error: " + error.message;
+        }
+      }
+    </script>
+  </body>
+</html>
